@@ -1,0 +1,35 @@
+# Ignore everything
+
+# But not these files...
+
+Cygwin-Terminal.ico
+Cygwin.bat
+Cygwin.ico
+
+FOS_CODES/.metadata
+FOS_CODES/FOS_Assignment_Template
+FOS_CODES/FOS_Labs_Template     
+FOS_CODES/RemoteSystemsTempFiles
+FOS_CODES/tempc
+FOS_CODES/TASK TEMPLATE 2021/*
+!FOS_CODES/TASK TEMPLATE 2021/user
+!FOS_CODES/TASK TEMPLATE 2021/kern
+
+
+
+FOS_Developer_Console.bat
+FOS_Eclipse.bat
+FOS_Labs_Template.zip
+FOS_Readme.txt
+Restore_Original.bat
+bin
+dev
+eclipse
+etc
+lib
+opt
+sbin
+setup-x86.exe
+unzip.exe
+usr
+var
