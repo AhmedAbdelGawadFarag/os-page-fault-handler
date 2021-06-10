@@ -485,16 +485,15 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va) {
 
 	struct Frame_Info *VictimFramePtr = NULL;
 
-	env_page_ws_print(curenv);
+	//env_page_ws_print(curenv);
 
 	if (checkifneedReplacment(curenv)) {
 		victimIndx = nclockalgo(curenv, page_WS_max_sweeps);
 		uint32 *ptrpgtable = NULL;
 		 VictimFramePtr = get_frame_info(curenv->env_page_directory,(void *) curenv->ptr_pageWorkingSet[victimIndx].virtual_address,&ptrpgtable);
 
-		if ((ptrpgtable[PTX(curenv->ptr_pageWorkingSet[victimIndx].virtual_address)]& PERM_MODIFIED) == PERM_MODIFIED) {
+		if (ptrpgtable[PTX(curenv->ptr_pageWorkingSet[victimIndx].virtual_address)]) {
 			pf_update_env_page(curenv,(void*) curenv->ptr_pageWorkingSet[victimIndx].virtual_address,VictimFramePtr);
-			//ptrpgtable[PTX(curenv->ptr_pageWorkingSet[victimIndx].virtual_address)] &=~(PERM_MODIFIED);
 		}
 
 		unmap_frame(curenv->env_page_directory,(void *) curenv->ptr_pageWorkingSet[victimIndx].virtual_address);
@@ -510,9 +509,6 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va) {
 
 	   placment(vraddr,VictimFramePtr,curenv,fault_va,victimIndx);
 
-	   cprintf("after \n");
-
-	   env_page_ws_print(curenv);
 	   setUsedBit(curenv,vraddr,1);
 
 }
@@ -521,21 +517,15 @@ void addToWorkingSet(struct Env *currenv, uint32 vraddr, int workingSetIndx) {
 	curenv->ptr_pageWorkingSet[workingSetIndx].virtual_address = vraddr;
 	curenv->ptr_pageWorkingSet[workingSetIndx].empty = 0;
 
-	if (!checkifneedReplacment(currenv))
-		curenv->page_last_WS_index++;
-
+	curenv->page_last_WS_index = workingSetIndx + 1;
 }
 bool checkifStack(uint32 vraddrs) {
 	return (vraddrs >= USER_HEAP_MAX && vraddrs < USTACKTOP);
 }
 bool checkifneedReplacment(struct Env * curenv) {
-//2
-//3
-//4
+	//return (env_page_ws_get_size(curenv) >= curenv->page_WS_max_size);
 
-	return (env_page_ws_get_size(curenv) >= curenv->page_WS_max_size);
-
-	//return (curenv->ptr_pageWorkingSet[curenv->page_WS_max_size - 1].empty == 0);
+	return (curenv->ptr_pageWorkingSet[curenv->page_WS_max_size - 1].empty == 0);
 }
 
 bool isUsed(struct Env *curenv, uint32 vRaddr) {
@@ -571,7 +561,7 @@ int nclockalgo(struct Env *curenv, int n) {
 				if (curenv->ptr_pageWorkingSet[i].n < n)
 					curenv->ptr_pageWorkingSet[i].n++;
 
-				else if (curenv->ptr_pageWorkingSet[i].n == n && indx == -1)//save first one
+				if (curenv->ptr_pageWorkingSet[i].n == n && indx == -1)//save first one
 					indx = i;								// that reaches n
 			}
 		}
