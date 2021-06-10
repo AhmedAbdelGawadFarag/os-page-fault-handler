@@ -52,4 +52,21 @@ uint32 isPageReplacmentAlgorithmNchanceCLOCK();
 void enableModifiedBuffer(uint32 enableIt);
 uint32 isModifiedBufferEnabled();
 
+
+void addToWorkingSet(struct Env *currenv,uint32 vraddr,int workingSetIndx);
+
+bool checkifStack(uint32 vraddrs);
+
+bool checkifneedReplacment(struct Env * curenv);
+
+
+
+bool isUsed(struct Env *curenv,uint32 vRaddr);
+
+
+void setUsedBit(struct Env *curenv,uint32 vRaddr,int bitt);
+int nclockalgo(struct Env *curenv,int n);
+
+void replaceVictim(struct Env *curenv,uint32 victimIndx,uint32 vraddr,struct Frame_Info *VictimFramePtr);
+
 #endif /* FOS_KERN_TRAP_H */

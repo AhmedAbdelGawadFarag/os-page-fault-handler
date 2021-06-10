@@ -10,7 +10,7 @@ char* ptr2 = (char* )0x0804000 ;
 
 void _main(void)
 {
-
+//cprintf("HELLLLLLLLLLLLLLL\n");
 //	cprintf("envID = %d\n",envID);
 
 	//("STEP 0: checking Initial WS entries ...\n");
@@ -29,6 +29,7 @@ void _main(void)
 		if( myEnv->page_last_WS_index !=  0)  										panic("INITIAL PAGE WS last index checking failed! Review size of the WS..!!");
 	}
 
+	//cprintf("HELLLLL2");
 	int freePages = sys_calculate_free_frames();
 	int usedDiskPages = sys_pf_calculate_allocated_pages();
 
@@ -49,9 +50,8 @@ void _main(void)
 		ptr++ ; ptr2++ ;
 
 	}
-
 	//===================
-
+	//cprintf("helll3\n");
 	//cprintf("Checking PAGE nth clock algorithm... \n");
 	{
 		if( ROUNDDOWN(myEnv->__uptr_pws[0].virtual_address,PAGE_SIZE) !=  0x808000)  panic("Page nth clock algo failed.. trace it by printing WS before and after page fault");
@@ -69,7 +69,7 @@ void _main(void)
 		if(myEnv->page_last_WS_index != 5) panic("wrong PAGE WS pointer location");
 
 	}
-
+	//cprintf("YESSSS");
 	cprintf("Congratulations!! test PAGE replacement [nth clock Alg.] is completed successfully.\n");
 	return;
 }

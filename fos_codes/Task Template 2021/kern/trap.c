@@ -494,14 +494,127 @@ uint32 env_page_ws_get_size(struct Env *e)
 	for(;i<e->page_WS_max_size; i++) if(e->ptr_pageWorkingSet[i].empty == 0) counter++;
 	return counter;
 }
+
+
+
 //Handle the page fault
 void page_fault_handler(struct Env * curenv, uint32 fault_va)
 {
-	//TODO: [Task 2021 - Fault handler] [5] page_fault_handler()
-	// Write your code here, remove the panic and write your code
-	panic("page_fault_handler() is not implemented yet...!!");
 
-	//refer to the documentation for details
+	uint32 vraddr = ROUNDDOWN(fault_va,PAGE_SIZE);
+	env_page_ws_print(curenv);
+	int victimIndx = -1;
+
+	if(checkifneedReplacment(curenv)){
+		 victimIndx = nclockalgo(curenv,page_WS_max_sweeps);
+
+		uint32 *ptrpgtable = NULL;
+		struct Frame_Info *VictimFramePtr = get_frame_info(curenv->env_page_directory,(void *)curenv->ptr_pageWorkingSet[victimIndx].virtual_address,&ptrpgtable);
+
+		if(ptrpgtable[PTX(curenv->ptr_pageWorkingSet[victimIndx].virtual_address)] & PERM_MODIFIED ){
+		    pf_update_env_page(curenv,(void*) curenv->ptr_pageWorkingSet[victimIndx].virtual_address,VictimFramePtr);
+			ptrpgtable[PTX(curenv->ptr_pageWorkingSet[victimIndx].virtual_address)] &= ~(PERM_MODIFIED);
+		}
+
+		replaceVictim(curenv,victimIndx,vraddr,VictimFramePtr);
+
+		cprintf("%d \n ",victimIndx);
+
+	}
+
+	cprintf("after \n");
+	env_page_ws_print(curenv);
+	cprintf("\n");
+
+
+	// placment
+	struct Frame_Info *ptrinfo = NULL;
+	allocate_frame(&ptrinfo);
+	map_frame(curenv->env_page_directory,ptrinfo,(void*)vraddr,PERM_USER|PERM_WRITEABLE|PERM_USED);
+
+	int ret = pf_read_env_page(curenv,(void *)vraddr);
+
+	if(ret == E_PAGE_NOT_EXIST_IN_PF){
+		if(checkifStack(fault_va))
+		pf_add_empty_env_page(curenv,vraddr,1);
+		else{
+			//ptrinfo->references = 0;
+			//free_frame(ptrinfo);
+			panic("invalid page file access exception");
+			return;
+		}
+
+	}
+
+	uint32 indxx =  curenv->page_last_WS_index;
+
+	if(victimIndx!=-1)indxx = victimIndx;
+
+	addToWorkingSet(curenv,vraddr,indxx);
+
+
+
 
 }
 
+void addToWorkingSet(struct Env *currenv,uint32 vraddr,int workingSetIndx){
+		curenv->ptr_pageWorkingSet[workingSetIndx].virtual_address = vraddr;
+		curenv->ptr_pageWorkingSet[workingSetIndx].empty = 0;
+		curenv->page_last_WS_index++;
+
+}
+bool checkifStack(uint32 vraddrs){
+	return (vraddrs>=USER_HEAP_MAX&&vraddrs<USTACKTOP);
+}
+bool checkifneedReplacment(struct Env * curenv){
+
+	return (curenv->ptr_pageWorkingSet[curenv->page_WS_max_size-1].empty == 0);
+}
+
+bool isUsed(struct Env *curenv,uint32 vRaddr){
+	uint32 *PtrPgTable = NULL;
+	struct Frame_Info *frameptr = get_frame_info(curenv->env_page_directory,(void*) vRaddr,&PtrPgTable);
+
+	return PtrPgTable[PTX(vRaddr)]&PERM_USED;
+}
+
+void setUsedBit(struct Env *curenv,uint32 vRaddr,int bitt){
+	uint32 *PtrPgTable = NULL;
+	struct Frame_Info *frameptr = get_frame_info(curenv->env_page_directory,(void*) vRaddr,&PtrPgTable);
+
+	if(bitt==1)
+	PtrPgTable[PTX(vRaddr)] |= PERM_USED;
+	else
+	PtrPgTable[PTX(vRaddr)] &= (~PERM_USED);
+
+	return;
+}
+
+int nclockalgo(struct Env *curenv,int n){
+	int indx = -1;
+	while(indx == -1){
+
+		for(int i=0;i<curenv->page_WS_max_size;i++){
+			if(isUsed(curenv,curenv->ptr_pageWorkingSet[i].virtual_address)){
+				setUsedBit(curenv,curenv->ptr_pageWorkingSet[i].virtual_address,0);
+				curenv->ptr_pageWorkingSet[i].n = 0;
+			}
+			else{
+				if(curenv->ptr_pageWorkingSet[i].n < n)
+					curenv->ptr_pageWorkingSet[i].n++;
+
+				else if(curenv->ptr_pageWorkingSet[i].n == n && indx==-1)//save first one
+					  indx = i;													 // that reaches n
+			}
+		}
+
+	}
+	return indx;
+}
+void replaceVictim(struct Env *curenv,uint32 victimIndx,uint32 vraddr,struct Frame_Info *VictimFramePtr){
+		unmap_frame(curenv->env_page_directory,(void *)curenv->ptr_pageWorkingSet[victimIndx].virtual_address);
+
+		curenv->ptr_pageWorkingSet[victimIndx].virtual_address = vraddr;
+		curenv->ptr_pageWorkingSet[victimIndx].empty = 0;
+
+}
