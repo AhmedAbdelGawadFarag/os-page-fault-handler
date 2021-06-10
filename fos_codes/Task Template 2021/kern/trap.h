@@ -67,6 +67,7 @@ bool isUsed(struct Env *curenv,uint32 vRaddr);
 void setUsedBit(struct Env *curenv,uint32 vRaddr,int bitt);
 int nclockalgo(struct Env *curenv,int n);
 
-void replaceVictim(struct Env *curenv,uint32 victimIndx,uint32 vraddr,struct Frame_Info *VictimFramePtr);
+
+void placment(uint32 vraddr,struct Frame_Info *frameptr,struct Env *curenv,uint32 fault_va,int victimIndx);
 
 #endif /* FOS_KERN_TRAP_H */
