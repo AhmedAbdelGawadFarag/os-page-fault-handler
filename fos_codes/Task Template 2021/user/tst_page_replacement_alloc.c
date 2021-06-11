@@ -13,6 +13,7 @@ void _main(void)
 
 //	cprintf("envID = %d\n",envID);
 
+	//cprintf("hello world");
 	//("STEP 0: checking Initial WS entries ...\n");
 	{
 		if( ROUNDDOWN(myEnv->__uptr_pws[0].virtual_address,PAGE_SIZE) !=   0x200000)  	panic("INITIAL PAGE WS entry checking failed! Review size of the WS..!!");
@@ -29,12 +30,16 @@ void _main(void)
 		if( myEnv->page_last_WS_index !=  0)  										panic("INITIAL PAGE WS last index checking failed! Review size of the WS..!!");
 	}
 
+
 	int freePages = sys_calculate_free_frames();
 	int usedDiskPages = sys_pf_calculate_allocated_pages();
 
 	//Reading (Not Modified)
 	char garbage1 = arr[PAGE_SIZE*11-1] ;
 	char garbage2 = arr[PAGE_SIZE*12-1] ;
+
+
+	//cprintf("Iam Here Mother Fuckers \n ");
 
 	//Writing (Modified)
 	int i ;
@@ -51,7 +56,7 @@ void _main(void)
 
 	//===================
 
-	//cprintf("Checking Allocation in Mem & Page File... \n");
+	cprintf("Checking Allocation in Mem & Page File... \n");
 	{
 		if( (sys_pf_calculate_allocated_pages() - usedDiskPages) !=  0) panic("Unexpected extra/less pages have been added to page file.. NOT Expected to add new pages to the page file");
 

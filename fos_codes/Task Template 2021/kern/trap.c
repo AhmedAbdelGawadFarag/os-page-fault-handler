@@ -503,14 +503,15 @@ void page_fault_handler(struct Env * curenv, uint32 fault_va) {
 		// placment
 
 		if( victimIndx == -1 ){
-		 allocate_frame(&VictimFramePtr);
 		 victimIndx = curenv->page_last_WS_index;
 		}
+		 allocate_frame(&VictimFramePtr);
 
 	   placment(vraddr,VictimFramePtr,curenv,fault_va,victimIndx);
 
 	   setUsedBit(curenv,vraddr,1);
 
+	  // env_page_ws_print(curenv);
 }
 
 void addToWorkingSet(struct Env *currenv, uint32 vraddr, int workingSetIndx) {
